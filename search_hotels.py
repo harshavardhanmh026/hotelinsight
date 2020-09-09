@@ -1,5 +1,6 @@
 import csv
 from abc import ABC, abstractmethod
+from functools import reduce
 
 hotel_csv_params = {
         "hotel_id" : 0,
@@ -34,7 +35,7 @@ class PerformOperation:
     def __init__(self, file_name, opr, param):
         with open(file_name, 'r') as csv_file:
             self.hotel_list = list(csv.reader(csv_file))[1:]
-            self.total_len = len(self.hotel_list)
+            # self.total_len = len(self.hotel_list)
             self.opr = opr
             self.param = param
 
@@ -50,40 +51,63 @@ class PerformOperation:
         state_idx = hotel_csv_params["state"]
         param_idx = hotel_csv_params[self.param]
 
-        val = [0, 0, 0, 0, 0]
+        # val = [0, 0, 0, 0, 0]
 
-        for index in range(self.total_len//2):
-            val = max(self.hotel_list[index] if self.hotel_list[index][state_idx].lower() == state else val,
-                val,
-                self.hotel_list[self.total_len-index-1] if self.hotel_list[self.total_len-index-1][state_idx].lower() == state else val,
-                key=lambda x : float(x[param_idx]))
-        return val
+        # for index in range(self.total_len//2):
+        #     val = max(self.hotel_list[index] if self.hotel_list[index][state_idx].lower() == state else val,
+        #         val,
+        #         self.hotel_list[self.total_len-index-1] if self.hotel_list[self.total_len-index-1][state_idx].lower() == state else val,
+        #         key=lambda x : float(x[param_idx]))
+
+        state_hotel_list = filter(lambda hotel : True if hotel[state_idx].lower() == state else False, self.hotel_list)
+
+        try:
+            return max(state_hotel_list, key=lambda x : float(x[param_idx]))
+        except Exception:
+            return [0, 0, 0, 0, 0]
 
     def cheapest(self, state):
         state_idx = hotel_csv_params["state"]
         param_idx = hotel_csv_params[self.param]
 
-        val = [0, 0, 0, 0, 0]
-        val[param_idx] = float('inf')
+        # val = [0, 0, 0, 0, 0]
+        # val[param_idx] = float('inf')
 
-        for index in range(self.total_len//2):
-            val = min(self.hotel_list[index] if self.hotel_list[index][state_idx].lower() == state else val,
-                val,
-                self.hotel_list[self.total_len-index-1] if self.hotel_list[self.total_len-index-1][state_idx].lower() == state else val,
-                key=lambda x : float(x[param_idx]))
-        return val
+        # for index in range(self.total_len//2):
+        #     val = min(self.hotel_list[index] if self.hotel_list[index][state_idx].lower() == state else val,
+        #         val,
+        #         self.hotel_list[self.total_len-index-1] if self.hotel_list[self.total_len-index-1][state_idx].lower() == state else val,
+        #         key=lambda x : float(x[param_idx]))
+
+        state_hotel_list = filter(lambda hotel : True if hotel[state_idx].lower() == state else False, self.hotel_list)
+
+        try:
+            return min(state_hotel_list, key=lambda x : float(x[param_idx]))
+        except Exception:
+            return [0, 0, 0, 0, 0]
+
 
     def average(self, state):
         state_idx = hotel_csv_params["state"]
         param_idx = hotel_csv_params[self.param]
 
-        val = 0.0
+        # val = 0.0
 
-        for index in range(self.total_len//2):
-            val += float(self.hotel_list[index][param_idx]) if self.hotel_list[index][state_idx].lower() == state else 0.0
-            val += float(self.hotel_list[self.total_len-index-1][param_idx]) if self.hotel_list[self.total_len-index-1][state_idx].lower() == state else 0.0
-        val /= self.total_len
-        return [val, state]
+        # for index in range(self.total_len//2):
+        #     val += float(self.hotel_list[index][param_idx]) if self.hotel_list[index][state_idx].lower() == state else 0.0
+        #     val += float(self.hotel_list[self.total_len-index-1][param_idx]) if self.hotel_list[self.total_len-index-1][state_idx].lower() == state else 0.0
+        # print(val)
+        # val /= self.total_len
+
+
+        state_hotel_list = [float(hotel[param_idx]) for hotel in self.hotel_list if hotel[state_idx].lower() == state]
+
+        try:
+            total_sum = reduce(lambda h1, h2: h1 + h2, state_hotel_list)
+
+            return [total_sum/len(state_hotel_list), state]
+        except Exception:
+            return [0, state]
 
     def output_formatter(self, val):
         if self.opr == opr_list[0]:
